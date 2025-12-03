@@ -1,12 +1,89 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import MovieCard from "@/components/MovieCard";
+import SearchBar from "@/components/SearchBar";
+import { icons } from "@/constants/icons";
+import { images } from "@/constants/images";
+import { fetchMovie } from "@/services/api";
+import useFetch from "@/services/useFetch";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-const search = () => {
+export default function Search() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    data: movies,
+    loading: moviesLoading,
+    error: moviesError,
+  } = useFetch(() => fetchMovie({ query: searchQuery }), [searchQuery]);
+
   return (
-    <View>
-      <Text>search</Text>
-    </View>
-  )
-}
+    <View className="flex-1 bg-primary">
+      {/* Background Image */}
+      <Image source={images.bg} style={StyleSheet.absoluteFillObject} />
 
-export default search
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        className="px-5"
+      >
+        <Image source={icons.logo} className="w-12 h-10 mt-20 mb-10 mx-auto" />
+
+        {/* Always-visible search bar */}
+        <SearchBar
+          onTextChange={setSearchQuery}
+          value={searchQuery}
+          placeholder="Search For A Movie"
+        />
+
+        {/* Only show results if user has typed something */}
+        {searchQuery.trim() === "" ? (
+          <View className="mt-10">
+            <Text className="text-white text-center text-lg">
+              Search For Your Favorite Movie
+            </Text>
+          </View>
+        ) : moviesLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#0000ff"
+            className="mt-10 self-center"
+          />
+        ) : moviesError ? (
+          <View className="mt-10">
+            <Text className="text-red-500 text-center">
+              {moviesError.message}
+            </Text>
+          </View>
+        ) : (
+          <View className="flex-1">
+            <Text className="text-white text-lg font-bold mt-5 mb-3">
+              Latest Movies
+            </Text>
+            <FlatList
+              data={movies || []}
+              renderItem={({ item }) => <MovieCard {...item} />}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={3}
+              columnWrapperStyle={{
+                justifyContent: "flex-start",
+                gap: 20,
+                paddingRight: 5,
+                marginBottom: 10,
+              }}
+              className="mt-2 pb-32"
+              scrollEnabled={false}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}

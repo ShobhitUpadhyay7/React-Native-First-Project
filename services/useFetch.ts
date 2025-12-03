@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 // The fetchFunction can be fetchMovie or any other similar function
 // useFetch(fetchMovie)
 
-const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
+const useFetch = <T>(fetchFunction: () => Promise<T>, deps: any[] = [], autoFetch = true) => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -33,7 +33,7 @@ const useFetch = <T>(fetchFunction: () => Promise<T>, autoFetch = true) => {
     if (autoFetch) {
       fetchData();
     }
-  }, []);
+  }, deps);
 
   return { data, loading, error, refetch: fetchData, reset };
 };
